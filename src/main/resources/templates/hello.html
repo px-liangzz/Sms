@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Insert title here</title>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>
+        <th>姓名v</th>
+        <th>性别1</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="attr : ${attrName}">
+        <td th:text="${attr.getDeptName()}">name</td>
+        <td th:text="${attr.getDeptId()}">male</td>
+    </tr>
+    <tr>
+
+        <td th:text="${redisName}">redisName</td>
+        <th>性别1</th>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

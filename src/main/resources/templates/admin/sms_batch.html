@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>短信批次管理</title>
+    <link rel="stylesheet" href="/static/libs/layui/css/layui.css"/>
+    <link rel="stylesheet" href="/static/module/admin.css?v=317" media="all"/>
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<!-- 加载动画 -->
+<div class="page-loading">
+    <div class="ball-loader">
+        <span></span><span></span><span></span><span></span>
+    </div>
+</div>
+
+<script type="text/html" id="authoritiesEditDialog">
+    <form id="authoritiesEditForm" lay-filter="authoritiesEditForm" class="layui-form model-form" >
+        <input name="ID" type="hidden"/>
+        <div class="layui-col-md6">
+		    <div class="layui-form-item">
+		        <label class="layui-form-label layui-form-required">流水号:</label>
+		        <div class="layui-input-block">
+		            <input name="BATCH_SERIALNUMBER" readonly class="layui-input"/>
+		        </div>
+		    </div>    
+		    <div class="layui-form-item">
+		        <label class="layui-form-label layui-form-required">发送用户:</label>
+		        <div class="layui-input-block">
+		            <input name="SEND_USER" readonly class="layui-input"/>
+		        </div>
+		    </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">系统名称:</label>
+	            <div class="layui-input-block">
+	               <input name="SYSTEM_NAME" readonly class="layui-input"/>
+	            </div>
+	        </div>	     
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">接入码:</label>
+	            <div class="layui-input-block">
+	               <input name="SYSTEM_CODE" readonly class="layui-input"/>
+	            </div>
+	        </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">发送IP:</label>
+	            <div class="layui-input-block">
+	               <input name="SEND_IP" readonly class="layui-input"/>
+	            </div>
+	        </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">发送类型:</label>
+	            <div class="layui-input-block">
+	            	<input name="SEND_TYPE" readonly class="layui-input"/>
+	            </div>
+	        </div>	      
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">发送时间:</label>
+	            <div class="layui-input-block">
+	               <input name="CREATE_TIME" readonly class="layui-input"/>
+	            </div>
+	        </div>  	          
+        </div>
+        <div class="layui-col-md6">
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">发送手机:</label>
+	            <div class="layui-input-block">
+	               <input name="RECEIVER_MOBILE_LIST" readonly class="layui-input"/>
+	            </div>
+	        </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">短信内容:</label>
+	            <div class="layui-input-block">
+	               <input name="SEND_SMS_CON" readonly class="layui-input"/>
+	            </div>
+	        </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">预约时间:</label>
+	            <div class="layui-input-block">
+	               <input name="SCHEDULE_TIME" readonly class="layui-input"/>
+	            </div>
+	        </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">扩展号:</label>
+	            <div class="layui-input-block">
+	               <input name="EXTEND_ACCESS_NUM" readonly class="layui-input"/>
+	            </div>
+	        </div>
+	        <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">原流水号:</label>
+	            <div class="layui-input-block">
+	               <input name="ORIGINAL_SERIALNUMBER" readonly class="layui-input"/>
+	            </div>
+	        </div>      
+	         <div class="layui-form-item">
+	            <label class="layui-form-label layui-form-required">状态:</label>
+	            <div class="layui-input-block">
+	               <div id="STATUS" ></div>
+	            </div>
+	        </div>  
+        </div>              
+        <div class="layui-form-item text-right">
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closeDialog">取消</button>
+        </div>
+        </div>
+    </form>
+</script>
+
+
+<!-- 正文开始 -->
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <!-- 表格工具栏 -->
+            <form class="layui-form toolbar table-tool-mini">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">流水号:</label>
+                        <div class="layui-input-inline">
+                            <input name="BATCH_SERIALNUMBER" class="layui-input" type="text" placeholder="输入关键字"/>
+                        </div>
+                    </div>                
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">系统名称:</label>
+                        <div class="layui-input-inline">
+                            <input name="SYSTEM_NAME" class="layui-input" type="text" placeholder="输入关键字"/>
+                        </div>
+                    </div>  
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">手机号码:</label>
+                        <div class="layui-input-inline">
+                            <input name="MOBILES" class="layui-input" type="text" placeholder="输入手机号码"/>
+                        </div>
+                    </div>                                  
+                    <div class="layui-inline">
+                        <label class="layui-form-label w-auto">短信内容:</label>
+                        <div class="layui-input-inline">
+                            <input name="SMS_CON" class="layui-input" type="text" placeholder="输入关键字"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                    	<label class="layui-form-label w-auto">起止时间:</label>
+	                    <div class="layui-input-inline">
+	                        <input id="formBasDateSel" name="QZ_DATE" placeholder="请选择开始和结束日期" class="layui-input icon-date"
+	                               autocomplete="off" lay-verType="tips" />
+	                    </div>
+                    </div>
+                    <div class="layui-inline" style="padding-right: 110px;">
+                        <button class="layui-btn icon-btn" lay-filter="tbBasicTbSearch" lay-submit>
+                            <i class="layui-icon">&#xe615;</i>搜索
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <!-- 数据表格 -->
+            <table id="tbBasicTable" lay-filter="tbBasicTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="tbBasicTbBar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="detail">详情</a>
+</script>
+<!-- js部分 -->
+<script type="text/javascript" src="/static/libs/layui/layui.js"></script>
+<script type="text/javascript" src="/static/js/common.js?v=317"></script>
+<script>
+
+
+        
+    layui.use(['layer', 'admin','form', 'table', 'util', 'dropdown','laydate','xmSelect'], function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var form = layui.form;
+        var table = layui.table;
+        var admin = layui.admin;
+        var util = layui.util;
+        var dropdown = layui.dropdown;
+        var xmSelect=layui.xmSelect
+
+        var laydate = layui.laydate;
+
+        
+		function tabTitle(){
+		    $('th').each(function(index,element){
+		        $(element).attr('title',$(element).text());
+		    });
+		    $('td').each(function(index,element){
+		        $(element).attr('title',$(element).text());
+		    });
+		};
+
+        function getDate(date)
+        {
+        	var year	=	date.year;
+        	var month	=	date.month;
+        	var day		=	date.date;
+		    if (month >= 1 && month <= 9) {
+		        month = "0" + month;
+		    }
+		    if (day >= 0 && day <= 9) {
+		        day = "0" + day;
+		    }         	
+        	return new Date(year+"-"+month+"-"+day);
+        }
+        
+        /* 渲染laydate */
+        laydate.render({
+            elem: '#formBasDateSel',
+            trigger: 'click',
+            done: function(value, date, endDate){//
+				var start		=	getDate(date);
+				var end			=	new Date((start.getFullYear()+1)+"-"+start.getMonth()+"-"+start.getDate());
+				var enddate		=	getDate(endDate)
+				if (enddate.getTime() > end.getTime()) {
+					layer.msg("对不起，起止时间不允许跨年！", {icon: 2,zIndex:999999999});
+					laydate.clear();
+				}
+            },
+            range: true
+        });
+
+        /* 渲染表格 */
+        var insTb = table.render({
+            elem: '#tbBasicTable',
+            url: '/admin/batch/list',
+            page: true,
+            cellMinWidth: 100,
+            cols: [[
+            	{field: 'BATCH_SERIALNUMBER', title: '流水号', sort: true, width:120},
+                {field: 'SYSTEM_NAME', title: '系统名称', sort: true, width:120},
+
+                {field: 'SEND_SMS_CON', title: '短信内容'},
+                {field: 'RECEIVER_MOBILE_LIST', title: '接收手机号', sort: true, width:120},
+                {
+                    field: 'CREATE_TIME', title: '入库时间', templet: function (d) {
+                        return util.toDateString(d.CREATE_TIME);
+                    }, align: 'center', sort: true, width:120
+                },
+                {field: 'ORIGINAL_SERIALNUMBER', title: '原流水号',sort: true, width:100},
+                {field: 'SEND_IP', title: '发送IP',sort: true, width:100},
+                {field: 'STATUS',align: 'center', title: '状态', templet:function(d)
+			            {
+							return [
+		                            '<span class="layui-badge layui-badge-red">未发送</span>',
+		                            '<span class="layui-badge layui-badge-green">已发送</span>'
+		                        ][d.STATUS];
+            		    }, sort: true, width: 70},                
+                {title: '操作', toolbar: '#tbBasicTbBar', align: 'center', width:60}
+            ]],done:function(res, curr, count){
+        		tabTitle();//调用方法
+		    }
+        });
+
+        /* 表格搜索 */
+        form.on('submit(tbBasicTbSearch)', function (data) {
+            insTb.reload({where: data.field, page: {curr: 1}});
+            return false;
+        });
+
+        /* 添加 */
+        $('#authoritiesAddBtn').click(function () {
+
+            showEditModel();
+        });
+
+        /* 显示表单弹窗 */
+        function showEditModel(mData) {
+            admin.open({
+                type: 1,
+                area: '650px',
+                title: '短信批次详情',
+                content: $('#authoritiesEditDialog').html(),
+                success: function (layero, dIndex) {
+                    // 回显表单数据
+                    form.val('authoritiesEditForm', mData);
+                    // 表单提交事件
+                    form.on('submit(authoritiesEditSubmit)', function (data) {
+                        data.field.PARENTS_ID = insXmSel.getValue('valueStr');
+                        var loadIndex = layer.load(2);
+                        $.get(mData ? '/admin/dept/update' : '/admin/dept/add', data.field, function (res) {
+                            layer.close(loadIndex);
+                            if (res.code == "0") {
+                                layer.close(dIndex);
+                                layer.msg(res.msg, {icon: 1});
+                                insTb.refresh();
+                            } else {
+                                layer.msg(res.msg, {icon: 2});
+                            }
+                        }, 'json');
+                        return false;
+                    });
+ 
+                     // 渲染多选下拉框
+                    var userStatus = xmSelect.render({
+                        el: '#STATUS',
+                        name: 'STATUS',
+                        radio: true,
+                        layVerify: 'required',
+                        layVerType: 'tips',
+                        initValue: mData ? [mData.STATUS] : [],
+                        data: [{
+                            name: '已发送',
+                            value: 1,
+                            disabled: true
+                        }, {
+                            name: '未发送',
+                            value: 0,
+                            disabled: true
+                        }]
+                    });
+                    
+ 
+                    // 弹窗不出现滚动条
+                    $(layero).children('.layui-layer-content').css('overflow', 'visible');
+                }
+            });
+        }
+
+        /* 表格工具条点击事件 */
+        table.on('tool(tbBasicTable)', function (obj) {
+            var data = obj.data; // 获得当前行数据
+            if (obj.event === 'detail') { // 修改
+                showEditModel(data);
+            }
+            dropdown.hideAll();
+        });
+
+        // 导出excel
+        $('#tbBasicExportBtn').click(function () {
+            var checkRows = table.checkStatus('tbBasicTable');
+            if (checkRows.data.length === 0) {
+                layer.msg('请选择要导出的数据', {icon: 2});
+            } else {
+                table.exportFile(insTb.config.id, checkRows.data, 'xls');
+            }
+        });
+
+    });
+</script>
+</body>
+</html>

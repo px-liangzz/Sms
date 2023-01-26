@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>部门管理</title>
+    <link rel="stylesheet" href="/static/libs/layui/css/layui.css"/>
+    <link rel="stylesheet" href="/static/module/admin.css?v=317"/>
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<!-- 页面加载loading -->
+<div class="page-loading">
+    <div class="ball-loader">
+        <span></span><span></span><span></span><span></span>
+    </div>
+</div>
+
+<script type="text/html" id="deptTbState">
+    <input type="checkbox" lay-filter="deptTbStateCk" value="{{d.ID}}" lay-skin="switch"
+           lay-text="正常|禁用" {{d.STATUS==1?'checked':''}} style="display: none;"/>
+    <p style="display: none;">{{d.STATUS==1?'禁用':'正常'}}</p>
+</script>
+
+<!-- 正文开始 -->
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <!-- 表格工具栏 -->
+            <form class="layui-form toolbar">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">部门名称:</label>
+                        <div class="layui-input-inline">
+                            <input name="DEPT_NAME" class="layui-input" placeholder="输入部门名称关键字"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">
+                        <label class="layui-form-label">部门备注:</label>
+                        <div class="layui-input-inline">
+                            <input name="DEPT_DESC" class="layui-input" placeholder="输入部门备注关键字"/>
+                        </div>
+                    </div>
+                    <div class="layui-inline">&emsp;
+                        <button class="layui-btn icon-btn" lay-filter="authoritiesTbSearch" lay-submit>
+                            <i class="layui-icon">&#xe615;</i>搜索
+                        </button>&nbsp;
+                        <button id="authoritiesAddBtn" class="layui-btn icon-btn" type="button">
+                            <i class="layui-icon">&#xe654;</i>添加
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <!-- 数据表格 -->
+            <table id="authoritiesTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="authoritiesTbBar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<!-- 表单弹窗 -->
+<script type="text/html" id="authoritiesEditDialog">
+    <form id="authoritiesEditForm" lay-filter="authoritiesEditForm" class="layui-form model-form" >
+        <input name="ID" type="hidden"/>
+	    <div class="layui-form-item">
+	        <label class="layui-form-label">上级菜单</label>
+	        <div class="layui-input-block">
+	            <div id="authoritiesEditParentSel" class="ew-xmselect-tree"></div>
+	        </div>
+	    </div>    
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">部门名称:</label>
+            <div class="layui-input-block">
+                <input name="DEPT_NAME" placeholder="请输入4-12位长度内的部门名称" class="layui-input"
+                       lay-min="4" lay-max="12" lay-verType="tips" lay-verify="required|minlenth|maxlenth" required/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">部门备注:</label>
+            <div class="layui-input-block">
+                <textarea name="DEPT_DESC" lay-min="4" lay-max="30" placeholder="请输入4-30位长度内的部门备注" lay-verify="required|minlenth|maxlenth" class="layui-textarea"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item text-right">
+            <button class="layui-btn" lay-filter="authoritiesEditSubmit" lay-submit>保存</button>
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closeDialog">取消</button>
+        </div>
+        </div>
+    </form>
+</script>
+<!-- js部分 -->
+<script type="text/javascript" src="../../static/libs/layui/layui.js"></script>
+<script type="text/javascript" src="../../static/js/common.js?v=317"></script>
+<script>
+    layui.use(['layer', 'form', 'admin', 'treeTable', 'util', 'xmSelect'], function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var form = layui.form;
+        var admin = layui.admin;
+        var treeTable = layui.treeTable;
+        var util = layui.util;
+        var xmSelect = layui.xmSelect;
+        var tbDataList = [];
+
+		form.verify({
+		        minlenth: function(value, item){
+		            var min = item.getAttribute('lay-min');
+		            if(value.length < min){
+		                return '长度不能小于'+min+'个字符';
+		            }
+		        },
+		        maxlenth: function(value, item){
+		            var max = item.getAttribute('lay-max');
+		            if(value.length > max){
+		                return '长度不能大于'+max+'个字符';
+		            }
+		        }	        
+		});
+		
+		function tabTitle(){
+		    $('th').each(function(index,element){
+		        $(element).attr('title',$(element).text());
+		    });
+		    $('td').each(function(index,element){
+		        $(element).attr('title',$(element).text());
+		    });
+		};		
+
+        // 渲染表格
+        var insTb = treeTable.render({
+            elem: '#authoritiesTable',
+            tree: {
+                iconIndex: 1,
+                idName: 'ID',
+                pidName: 'PARENTS_ID',
+                isPidData: true
+            },
+            cellMinWidth: 100,
+            cols: [
+                {type: 'numbers'},                
+                {field: 'DEPT_NAME', title: '部门名称', width: 220},
+                {field: 'DEPT_DESC', title: '部门备注', width: 360},
+                {title: '创建时间', templet: '<p>{{layui.util.toDateString(d.CREATE_TIME)}}</p>', align: 'center'},
+                {title: '修改时间', templet: '<p>{{layui.util.toDateString(d.UPDATE_TIME)}}</p>', align: 'center'},
+                {field: 'state', title: '状态', templet: '#deptTbState', sort: true, width: 90},
+                {title: '操作', templet: '#authoritiesTbBar', singleLine: false, align: 'center', width: 120}
+            ],
+            reqData: function (data, callback) {
+                $.get('/admin/dept/list', function (res) {
+                    tbDataList = res.data ? res.data : [];
+                    callback(res.data);
+                }, 'json');
+            },done:function(res, curr, count){
+        		tabTitle();//调用方法
+		    }
+        });///	../../json/authorities.json
+
+        /* 表格操作列点击事件 */
+        treeTable.on('tool(authoritiesTable)', function (obj) {
+            if (obj.event === 'edit') { // 修改
+                showEditModel(obj.data);
+            } else if (obj.event === 'del') { // 删除
+                doDel(obj);
+            }
+        });
+
+        /* 表格搜索 */
+        form.on('submit(authoritiesTbSearch)', function (data) {
+            doTbSearch(data.field,'ID');
+            return false;
+        });
+
+        /* 添加 */
+        $('#authoritiesAddBtn').click(function () {
+            showEditModel();
+        });
+        
+        /* 修改状态 */
+        form.on('switch(deptTbStateCk)', function (obj) {
+            var loadIndex = layer.load(2);
+            $.get('/admin/dept/zt', {
+                ID: obj.elem.value,
+                STATUS: obj.elem.checked ? 1 : 0
+            }, function (res) {
+                layer.close(loadIndex);
+                if (res.code == "0") {               
+                    layer.msg(res.msg, {icon: 1});
+                    insTb.refresh();
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                    $(obj.elem).prop('checked', !obj.elem.checked);
+                    form.render('checkbox');
+                }
+            }, 'json');
+        });
+        
+
+        /* 显示表单弹窗 */
+        function showEditModel(mData) {
+            admin.open({
+                type: 1,
+                area: '450px',
+                title: (mData ? '修改' : '添加') + '部门',
+                content: $('#authoritiesEditDialog').html(),
+                success: function (layero, dIndex) {
+                    // 回显表单数据
+                    form.val('authoritiesEditForm', mData);
+                    // 表单提交事件
+                    form.on('submit(authoritiesEditSubmit)', function (data) {
+                        data.field.PARENTS_ID = insXmSel.getValue('valueStr');
+                        var loadIndex = layer.load(2);
+                        $.get(mData ? '/admin/dept/update' : '/admin/dept/add', data.field, function (res) {
+                            layer.close(loadIndex);
+                            if (res.code == "0") {
+                                layer.close(dIndex);
+                                layer.msg(res.msg, {icon: 1});
+                                insTb.refresh();
+                            } else {
+                                layer.msg(res.msg, {icon: 2});
+                            }
+                        }, 'json');
+                        return false;
+                    });
+                    // 渲染下拉树
+                    var insXmSel = xmSelect.render({
+                        el: '#authoritiesEditParentSel',
+                        height: '250px',
+                        data: insTb.options.data,
+                        initValue: mData ? [mData.PARENTS_ID] : [],
+                        model: {label: {type: 'text'}},
+                        prop: {
+                            name: 'DEPT_NAME',
+                            value: 'ID'
+                        },
+                        radio: true,
+                        clickClose: true,
+                        tree: {
+                            show: true,
+                            indent: 15,
+                            strict: false,
+                            expandedKeys: true
+                        }
+                    });
+                    // 弹窗不出现滚动条
+                    $(layero).children('.layui-layer-content').css('overflow', 'visible');
+                }
+            });
+        }
+
+        /* 删除 */
+        function doDel(obj) {
+            layer.confirm('确定要删除“' + obj.data.DEPT_NAME + '”部门吗？', {
+                skin: 'layui-layer-admin',
+                shade: .1
+            }, function (i) {	
+                layer.close(i);
+                var loadIndex = layer.load(2);
+                $.get('/admin/dept/del', {ID: obj.data.ID}, function (res) {
+                    layer.close(loadIndex);
+                    if (res.code == "0") {
+                        layer.msg(res.msg, {icon: 1});
+                        insTb.refresh();
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                }, 'json');
+            });
+        }
+
+        /* 搜索表格数据 */
+        function doTbSearch(field, idName) {
+            var ids = [], isClear = true;
+            for (var i = 0; i < tbDataList.length; i++) {
+                var item = tbDataList[i], flag = true;
+                for (var f in field) {
+                    if (!field.hasOwnProperty(f)) continue;
+                    if (!field[f]) continue;
+                    isClear = false;
+                    if (!item[f] || item[f].indexOf(field[f]) === -1) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) ids.push(item[idName]);
+            }
+            if (isClear) {
+                insTb.clearFilter();
+            } else {
+                insTb.filterData(ids);
+            }
+        }
+
+    });
+</script>
+</body>
+</html>

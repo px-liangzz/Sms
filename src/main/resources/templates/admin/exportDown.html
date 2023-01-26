@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="/static/libs/layui/css/layui.css"/>
+    <link rel="stylesheet" href="/static/module/admin.css?v=317"/>
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+<!-- 页面加载loading -->
+<div class="page-loading">
+    <div class="ball-loader">
+        <span></span><span></span><span></span><span></span>
+    </div>
+</div>
+<!-- 正文开始 -->
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <!-- 数据表格 -->
+            <table id="userTable" lay-filter="userTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 表格操作列 -->
+<script type="text/html" id="userTbBar">
+    <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="reset">重置密码</a>
+    <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="cspz">参数配置</a>
+</script>
+
+<!--参数配置-->
+<script type="text/html" id="csEditDialog">
+    <form id="dictEditForm" lay-filter="dictEditForm" class="layui-form model-form">
+        <input name="ID" type="hidden"/>
+        <div class="layui-form-item">
+            <label class="layui-form-label layui-form-required">发送IP:</label>
+            <div class="layui-input-block">
+                <input id="SEND_IP" name="SEND_IP" placeholder="请输入正确的IP地址" class="layui-input"
+                       lay-verType="tips" lay-verify="required|ip" lay-verType="tips" lay-verify="required" required/>
+            </div>
+        </div>
+        <div class="layui-form-item text-right">
+            <button class="layui-btn" lay-filter="dictEditSubmit" lay-submit>保存</button>
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closeDialog">取消</button>
+        </div>
+    </form>
+</script>
+
+<!-- 表单弹窗 -->
+<script type="text/html" id="userEditDialog">
+    <form id="userEditForm" lay-filter="userEditForm" class="layui-form model-form">
+        <input name="ID" type="hidden"/>
+                <div class="layui-row">
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">所属部门</label>
+                    <div class="layui-input-block">
+                    	<div id="DEPT_ID" ></div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">用户名:</label>
+                    <div class="layui-input-block">
+                        <input name="USER_NAME" placeholder="请输入4-10位内长度的用户名" class="layui-input"
+                               lay-min="4" lay-max="10" lay-verType="tips" lay-verify="required|maxlenth|minlenth" required/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">接口密码:</label>
+                    <div class="layui-input-block">
+                        <input name="SYSTEM_PAS" placeholder="请输入6-12位内长度的短信发送密码" class="layui-input"
+                               lay-min="6" lay-max="12" lay-verType="tips" lay-verify="required|minlenth|maxlenth" required/>
+                    </div>
+                </div> 
+                <div class="layui-form-item">
+		            <label class="layui-form-label layui-form-required">用户类型:</label>
+		            <div class="layui-input-block">
+		                <div id="USER_TYPE" ></div>
+		            </div>
+		        </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">用户状态:</label>
+                    <div class="layui-input-block">
+                    	<div id="STATUS" ></div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">建立时间:</label>
+                    <div class="layui-input-block">
+                        <input name="CREATE_TIME" placeholder="用户建立时间" readonly class="layui-input layui-disabled" lay-verType="tips"/>
+                    </div>
+                </div>             
+            </div>
+            <div class="layui-col-md6">
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">接入码:</label>
+                    <div class="layui-input-block">
+                        <input name="SYSTEM_CODE" placeholder="请输入系统接入码，原则上是2位数字。" class="layui-input"
+                               lay-min="2" lay-verType="tips" lay-verify="required|minlenth" required/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">系统名称:</label>
+                    <div class="layui-input-block">
+                        <input name="SYSTEM_NAME" placeholder="请输入6-30位内长度的系统名称" class="layui-input"
+                               lay-min="6" lay-max="30" lay-verType="tips" lay-verify="required" required/>
+                    </div>
+                </div>             
+               <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">责任民警:</label>
+                    <div class="layui-input-block">
+                        <input name="POLICE_NAME" lay-min="2" lay-max="5" placeholder="请输入2-5位长度内的责任民警姓名" lay-verify="required|minlenth|maxlenth" required class="layui-input"/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">民警电话:</label>
+                    <div class="layui-input-block">
+                        <input name="POLICE_PHONE" placeholder="请输入责任民警手机号码" lay-verify="required|phone" class="layui-input"/>
+                    </div>
+                </div>
+              <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required"  >负责技术:</label>
+                    <div class="layui-input-block">
+                        <input name="TECHNICIAN_NAME" lay-min="2" lay-max="5" placeholder="请输入2-5位长度内的负责技术姓名" lay-verify="required|minlenth|maxlenth" required placeholder="请输入系统技术联系人" class="layui-input"/>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label layui-form-required">技术电话:</label>
+                    <div class="layui-input-block">
+                        <input name="TECHNICIAN_PHONE" placeholder="请输入技术联系人手机号码" lay-verify="required|phone" required class="layui-input"/>
+                    </div>
+                </div>                  
+            </div>
+        </div>
+        <div class="layui-form-item text-right">
+            <button class="layui-btn" lay-filter="userEditSubmit" lay-submit>保存</button>
+            <button class="layui-btn layui-btn-primary" type="button" ew-event="closeDialog">取消</button>
+        </div>
+    </form>
+</script>
+
+<!-- js部分 -->
+<script type="text/javascript" src="/static/libs/layui/layui.js"></script>
+<script type="text/javascript" src="/static/js/common.js?v=317"></script>
+<script>
+    layui.use(['layer', 'form', 'table', 'util', 'admin', 'xmSelect'], function () {
+        var $ = layui.jquery;
+        var layer = layui.layer;
+        var form = layui.form;
+        var table = layui.table;
+        var util = layui.util;
+        var admin = layui.admin;
+        var xmSelect = layui.xmSelect;
+        var deptXmSelect =	layui.xmSelect;
+        var cascader = layui.cascader;
+        
+		form.verify({
+		        minlenth: function(value, item){
+		            var min = item.getAttribute('lay-min');
+		            if(value.length < min){
+		                return '长度不能小于'+min+'个字符';
+		            }
+		        },
+		        maxlenth: function(value, item){
+		            var max = item.getAttribute('lay-max');
+		            if(value.length > max){
+		                return '长度不能大于'+max+'个字符';
+		            }
+		        },
+		        uppercase: function(value,item)
+		        {
+     				 if(/^[A-Z]+$/.test(value))    
+	     			 {   
+					 }else
+					 {
+					 	return '必须是大写字母';
+					 }   		        	        
+		        },
+		        ip: [
+					/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+					,'IP地址不符合规则'
+					] 
+		});
+		
+
+	    
+        /* 渲染表格 */
+        var insTb = table.render({
+            elem: '#userTable',
+            url: '/admin/exportDown/list',
+            //toolbar: ['<p>',
+            //    '<button lay-event="add" class="layui-btn layui-btn-sm icon-btn"><i class="layui-icon">&#xe654;</i>添加</button>&nbsp;',
+            //    '</p>'].join(''),
+            cellMinWidth: 100,
+            cols: [[
+                {field: 'fileName', title: '文件名称', sort: true},
+                {title: '创建时间', templet: '<p>{{layui.util.toDateString(d.createTime)}}</p>', align: 'center',width:300},
+                {title: '操作', align: 'center',templet: function (d) {
+
+	                		return "<a class='layui-btn layui-btn-primary layui-btn-xs' href='/admin/exportDown/down?fileName="+d.fileName+"' >下载</a>"
+									+"<a class='layui-btn layui-btn-danger layui-btn-xs' lay-event='del'>删除</a>";
+                	}, align: 'center', width: 180
+                }
+            ]],done:function(res, curr, count){
+        		tabTitle();//调用方法
+		    }
+        });
+
+
+        /* 表格工具条点击事件 */
+        table.on('tool(userTable)', function (obj) {
+            if (obj.event === 'del') { // 删除
+                doDel(obj);
+            } else if (obj.event === 'down') { // 重置密码
+                down(obj);
+            }
+        });
+
+		function tabTitle(){
+		    $('th').each(function(index,element){
+		        $(element).attr('title',$(element).text());
+		    });
+		    $('td').each(function(index,element){
+		        $(element).attr('title',$(element).text());
+		    });
+		};	
+		
+		function down(obj)
+		{
+			alert(obj.data.fileName);
+			 $.get('/admin/exportDown/down', {
+                    fileName:  obj.data.fileName
+                });
+		}
+
+        /* 删除 */
+        function doDel(obj) {
+            layer.confirm('确定要删除 '+obj.data.fileName+' 文件吗？', {
+                skin: 'layui-layer-admin',
+                shade: .1
+            }, function (i) {
+                layer.close(i);
+                var loadIndex = layer.load(2);
+                $.get('/admin/exportDown/del', {
+                    fileName:  obj.data.fileName
+                }, function (res) {
+                    layer.close(loadIndex);
+                    if (res.code == "0") {
+                        layer.msg(res.msg, {icon: 1});
+                        insTb.reload({page: {curr: 1}});
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                }, 'json');
+            });
+        }
+
+    });
+</script>
+</body>
+</html>
